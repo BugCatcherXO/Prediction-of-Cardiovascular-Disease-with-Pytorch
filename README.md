@@ -1,112 +1,168 @@
-Predicción de Enfermedad Cardíaca con PyTorch (MLP)
+Heart Disease Prediction with PyTorch (MLP)
 
-Proyecto de clasificación binaria que, a partir de variables clínicas básicas, predice la presencia de HeartDisease. Está implementado en un notebook con pandas / scikit-learn / PyTorch e incluye EDA, split estratificado, preprocessing sin fugas de información, entrenamiento de una MLP y evaluación con ROC y Precision-Recall, además de búsqueda de umbral por F1.
+Binary classification of HeartDisease from routine clinical variables, built in a single Jupyter notebook.
+The pipeline covers EDA → stratified splits → preprocessing with no data leakage → MLP training → threshold tuning → ROC/PR evaluation.
 
-🗂 Estructura del proyecto
+Highlights
+
+Clean, reproducible pipeline (fixed seeds, no leakage).
+
+Minimal, readable preprocessing (z-score for numeric; one-hot for categoricals).
+
+PyTorch MLP with dropout and weight decay.
+
+Validation-driven threshold selection (maximize F1).
+
+Robust evaluation with ROC, Precision-Recall, confusion matrix, and AUROC/AUPRC.
+
+Reference validation results (from the included run):
+
+AUROC ≈ 0.929
+
+AUPRC ≈ 0.942
+
+Test metrics are reported twice in the notebook: at threshold 0.5 and at the best F1 threshold chosen on validation.
+
+Project Structure
 cardiovascular_illness/
-├─ 01_proyecto.ipynb
+├─ 01_proyecto.ipynb      # Main notebook: EDA → training → eval
 └─ dataset/
-   └─ heart.csv
+   └─ heart.csv           # Input data (see “Data”)
 
 
-🚀 Requisitos e instalación
+(Optional) If you plan to version plots, create:
 
-Python 3.9+
+cardiovascular_illness/
+└─ figures/
+   ├─ roc_val.png
+   └─ pr_val.png
 
-Jupyter / IPython
+Data
 
-Paquetes principales: pandas, numpy, matplotlib, scikit-learn, torch (CUDA opcional)
+File: dataset/heart.csv
 
-Instalación rápida (Windows / macOS / Linux):
+Target column: HeartDisease ∈ {0, 1}
 
-# (opcional) entorno virtual
+Features used:
+Age, Sex, ChestPainType, RestingBP, Cholesterol, FastingBS, RestingECG, MaxHR, ExerciseAngina, Oldpeak, ST_Slope
+
+Assumptions / rules
+
+Cholesterol == 0 is treated as missing and imputed with the median (calculated on train only).
+
+Numerical columns are z-scored using train mean/std (std=1.0 if originally 0).
+
+Categorical columns (Sex, ChestPainType, RestingECG, ExerciseAngina, ST_Slope) are one-hot encoded with columns fixed from train (val/test reindexed).
+
+Environment & Installation
+
+Python 3.9+ recommended
+
+# (optional) create a virtual environment
 python -m venv .venv
-# Windows
+
+# activate
+# Windows:
 .venv\Scripts\activate
-# macOS / Linux
+# macOS / Linux:
 source .venv/bin/activate
 
+# install dependencies
 pip install pandas numpy matplotlib scikit-learn torch jupyter
 
 
-Abrir el notebook:
+Open the notebook:
 
 jupyter notebook 01_proyecto.ipynb
 
-📦 Datos
 
-Archivo: dataset/heart.csv
-Target: HeartDisease ∈ {0,1}
-Features usadas: Age, Sex, ChestPainType, RestingBP, Cholesterol, FastingBS, RestingECG, MaxHR, ExerciseAngina, Oldpeak, ST_Slope.
+GPU is used automatically if available (torch.cuda.is_available()).
 
-El notebook arranca con una sanity check: shape, tipos, valores perdidos y distribución del objetivo.
+How the Pipeline Works
 
-🔎 EDA (Exploratory Data Analysis)
+Load & sanity check
+Shape, dtypes, missing values, and target distribution.
 
-Incluye:
+EDA
 
-Histograma de la variable objetivo.
+Class balance bar plot
 
-Histogramas y boxplots de variables numéricas.
+Histograms & boxplots of numeric features
 
-Matriz de correlaciones (Pearson) para numéricas + target.
+Correlation matrix (Pearson) for numeric + target
 
-En EDA se excluye FastingBS de algunos gráficos por ser binaria, pero sí se utiliza como feature en el modelo.
+Stratified Split (seed=42)
 
-✂️ Split y Preprocessing
+70% Train, 15% Validation, 15% Test (two-stage train_test_split)
 
-Split estratificado y reproducible (seed=42):
+Class proportions printed for each split
 
-Train 70%, Valid 15%, Test 15%.
+Preprocessing (fit on train, apply to val/test)
 
-Sin fugas: estadísticas de imputación/estandarización se calculan solo en train.
+Cholesterol==0 → NaN → median imputation
 
-Numéricas → imputación por mediana + z-score (media/STD de train; STD=1 si es 0).
+Numeric: median imputation → z-score
 
-Categóricas (Sex, ChestPainType, RestingECG, ExerciseAngina, ST_Slope) → one-hot con columnas fijadas por train (reindex en val/test).
+Categorical: one-hot (fixed columns from train)
 
-Tratamiento específico: Cholesterol == 0 se considera missing y se imputa con la mediana.
+PyTorch Dataset & DataLoader
 
-🧠 Modelo
+Tensors built from the preprocessed arrays
 
-MLP (PyTorch)
+batch_size=64, shuffle on train only
 
-Capas: in_features → 128 → 32 → 1
+Model: MLP (PyTorch)
 
-Activación: ReLU
+Layers: in_features → 128 → 32 → 1
 
-Dropout p=0.325
+Activation: ReLU; Dropout p=0.325
 
-Pérdida: BCEWithLogitsLoss
+Loss: BCEWithLogitsLoss
 
-Optimizador: Adam lr=1e-3, weight_decay=1e-4
+Optimizer: Adam(lr=1e-3, weight_decay=1e-4)
 
-Batch size: 64
+Epochs: 250
 
-Épocas: 250
+Validation & Threshold Tuning
 
-Device: cuda si hay GPU, si no cpu
+Compute ROC and PR on validation
 
-Semillas fijadas: numpy/torch (42)
+Choose best threshold by max F1 on validation
 
-Durante el entrenamiento se reportan por época: train_loss, val_loss, val_acc, val_auroc, val_f1.
+Test Evaluation
 
-📊 Evaluación y selección de umbral
+Report metrics at threshold 0.5 and best-F1:
+Accuracy, Precision, Recall, F1, AUROC (threshold-free), and confusion matrix [[TN, FP], [FN, TP]].
 
-ROC en validación
-AUROC ≈ 0.929 (según la figura incluida).
 
-Precision-Recall en validación
-AUPRC ≈ 0.942.
+Results & Plots
 
-Umbral óptimo por F1 (validación)
-Se barre el umbral sobre las scores de validación y se selecciona el que maximiza F1.
+The notebook renders the following:
 
-Reporte en test
-Se imprimen métricas a:
+ROC (Validation) — AUROC ≈ 0.929
 
-Umbral 0.5
+Precision–Recall (Validation) — AUPRC ≈ 0.942
 
-Mejor umbral (F1-val)
 
-Para cada caso: accuracy, precision, recall, F1, AUROC y matriz de confusión [[TN, FP],[FN, TP]]
+
+Reproducibility
+
+random_state=42 in all splits
+
+torch.manual_seed(42) for model
+
+All preprocessing statistics are fit only on train and reused for val/test
+
+
+Configuration:
+
+| Setting        | Value (default)   |
+| -------------- | ----------------- |
+| `batch_size`   | 64                |
+| `epochs`       | 250               |
+| `lr`           | 1e-3              |
+| `weight_decay` | 1e-4              |
+| `dropout`      | 0.325             |
+| Hidden sizes   | 128 → 32          |
+| Loss           | BCEWithLogitsLoss |
+| Optimizer      | Adam              |
