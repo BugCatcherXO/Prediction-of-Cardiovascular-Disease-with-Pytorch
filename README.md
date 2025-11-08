@@ -50,16 +50,16 @@ Categorical columns (Sex, ChestPainType, RestingECG, ExerciseAngina, ST_Slope) a
 
 Python 3.9+ recommended
 
-# (optional) create a virtual environment
+### (optional) create a virtual environment
 python -m venv .venv
 
-# activate
-# Windows:
+## activate
+### Windows:
 .venv\Scripts\activate
-# macOS / Linux:
+### macOS / Linux:
 source .venv/bin/activate
 
-# install dependencies
+### install dependencies
 pip install pandas numpy matplotlib scikit-learn torch jupyter
 
 
