@@ -28,12 +28,6 @@ cardiovascular_illness/
 └─ dataset/
    └─ heart.csv           # Input data (see “Data”)
 
-(Optional) If you plan to version plots, create:
-cardiovascular_illness/
-└─ figures/
-   ├─ roc_val.png
-   └─ pr_val.png
-
 ---
 
 ## Data
