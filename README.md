@@ -54,24 +54,6 @@ Assumptions / rules
 
 Python 3.9+ recommended.
 
-# (optional) create a virtual environment
-python -m venv .venv
-
-# activate
-# Windows:
-.venv\Scripts\activate
-# macOS / Linux:
-source .venv/bin/activate
-
-# install dependencies
-pip install pandas numpy matplotlib scikit-learn torch jupyter
-
-Open the notebook:
-jupyter notebook 01_proyecto.ipynb
-
-GPU is used automatically if available (torch.cuda.is_available()).
-
----
 
 ## How the Pipeline Works
 
@@ -123,9 +105,8 @@ To save figures for your README, add before each plt.show():
 plt.savefig("figures/roc_val.png", dpi=150, bbox_inches="tight")
 plt.savefig("figures/pr_val.png",  dpi=150, bbox_inches="tight")
 
-Then reference them in markdown:
-![ROC (Validation)](figures/roc_val.png)
-![Precision–Recall (Validation)](figures/pr_val.png)
+![alt text](e90812a9-3da5-48b4-8d05-2b6e72986811-1.png)
+![alt text](968e852a-df7b-4401-bdfc-e77ccd734553-1.png)
 
 ---
 
